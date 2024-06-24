@@ -29,29 +29,25 @@ class AuthController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email', //TODO verifier 
+            'username' => 'required|unique:users,username',
+            'email' => 'required|email|unique:users,email', //TODO verifier le mail
             'password' => 'required|confirmed|min:8',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        Auth::login($user);
-
-        return redirect('/');
+        return response()->json([
+            'token' => $user->createToken(time())->plainTextToken
+        ]);
     }
 
     public function destroy()
     { 
         Auth::guard('web')->logout();
-
-        // $request->session()->invalidate();
-
-        // $request->session()->regenerateToken();
  
         return response(null, 204);
      }
