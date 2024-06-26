@@ -21,7 +21,8 @@ class AuthController extends Controller
 
         if (Hash::check($request->password, $user->password)) {
             return response()->json([
-                'token' => $user->createToken(time())->plainTextToken
+                'token' => $user->createToken(time())->plainTextToken,
+                'user' => $user,
             ]);
         }
     }
@@ -41,7 +42,8 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'token' => $user->createToken(time())->plainTextToken
+            'token' => $user->createToken(time())->plainTextToken,
+            'user' => $user,
         ]);
     }
 
