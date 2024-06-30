@@ -21,6 +21,11 @@ class Post extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function replies()
+    {
+        return $this->hasMany(PostReply::class);
+    }
+
     public function files()
     {
         return $this->hasMany(PostFile::class);

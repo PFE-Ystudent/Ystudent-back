@@ -13,29 +13,65 @@ use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $validated = $request->validate(['page' => 'integer|min:1']);
+        $page = $validated['page'] - 1 ?? 0;
+
         $posts = Post::query()->with('files', 'author', 'categories')
+            ->withCount('replies')
             ->where('user_id', Auth::user()->id)
             ->where('is_archived', false)
-            ->orderByDesc('created_at')->get();
-        return response()->json(['posts' => PostResource::collection($posts)]);
+            ->orderByDesc('created_at')
+            ->skip($page * 5)
+            ->limit(5)
+            ->get();
+
+        $lastPage = ceil(Post::query()->where('is_archived', false)->where('user_id', Auth::user()->id)->count() / 5);
+        return response()->json([
+            'posts' => PostResource::collection($posts),
+            'lastPage' => $lastPage
+        ]);
     }
 
-    public function followedPost()
+    public function followedPost(Request $request)
     {
+        $validated = $request->validate(['page' => 'integer|min:1']);
+        $page = $validated['page'] - 1 ?? 0;
+
         $posts = Post::query()->with('files', 'author', 'categories')
+            ->withCount('replies')
             ->where('is_archived', false)
-            ->orderByDesc('created_at')->get();
-        return response()->json(['posts' => PostResource::collection($posts)]);
+            ->orderByDesc('created_at')
+            ->skip($page * 5)
+            ->limit(5)
+            ->get();
+
+        $lastPage = ceil(Post::query()->where('is_archived', false)->count() / 5);
+        return response()->json([
+            'posts' => PostResource::collection($posts),
+            'lastPage' => $lastPage
+        ]);
     }
   
-    public function newPost()
+    public function newPost(Request $request)
     {
+        $validated = $request->validate(['page' => 'integer|min:1']);
+        $page = $validated['page'] - 1 ?? 0;
+
         $posts = Post::query()->with('files', 'author', 'categories')
+            ->withCount('replies')
             ->where('is_archived', false)
-            ->orderByDesc('created_at')->get();
-        return response()->json(['posts' => PostResource::collection($posts)]);
+            ->orderByDesc('created_at')
+            ->skip($page * 5)
+            ->limit(5)
+            ->get();
+
+        $lastPage = ceil(Post::query()->where('is_archived', false)->count() / 5);
+        return response()->json([
+            'posts' => PostResource::collection($posts),
+            'lastPage' => $lastPage
+        ]);
     }
 
     public function store(Request $request)
@@ -64,7 +100,9 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
-        return $post->load('files');
+        return response()->json([
+            'post' => PostResource::make($post)
+        ]);
     }
 
     public function update(Request $request, Post $post)
@@ -87,7 +125,7 @@ class PostController extends Controller
         return response()->json(null, 204);
     }
 
-    public function addImages(Request $request, Post $post)
+    public function addFiles(Request $request, Post $post)
     {
         $validated = $request->validate([
             'images.*' => 'required|file|mimes:jpg,png,jpeg|max:2048',

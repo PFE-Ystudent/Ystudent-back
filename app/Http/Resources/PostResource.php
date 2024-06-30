@@ -18,6 +18,7 @@ class PostResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'content' => $this->content,
+            'replyCount' => $this->whenNotNull($this->replies_count),
             'author' => AuthorResource::make($this->author),
             'categories' => CategoryResource::collection($this->categories),
             'files' => $this->files,
