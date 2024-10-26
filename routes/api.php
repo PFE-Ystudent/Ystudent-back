@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostReplyController;
+use App\Http\Controllers\SurveyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,11 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
         });
     });
     Route::apiResource('posts', PostController::class)->except(['index']);
+
+    Route::prefix('survey')->group(function () {
+        Route::post('options/{surveyOption}', [SurveyController::class, 'reply']);
+        Route::delete('options/{surveyOption}', [SurveyController::class, 'deleteReply']);
+    });
 
     Route::prefix('categories')->group(function () {
         Route::get('', [CategoryController::class, 'fetchAll']);

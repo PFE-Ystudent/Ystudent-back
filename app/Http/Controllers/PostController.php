@@ -6,6 +6,8 @@ use App\Http\Resources\PostResource;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\PostFile;
+use App\Models\Survey;
+use App\Models\SurveyOption;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,8 +20,20 @@ class PostController extends Controller
         $validated = $request->validate(['page' => 'integer|min:1']);
         $page = $validated['page'] - 1 ?? 0;
 
-        $posts = Post::query()->with('files', 'author', 'categories')
-            ->withCount('replies')
+        $posts = Post::query()
+            ->with([
+                'files',
+                'author',
+                'categories',
+                'surveys',
+                'surveys.surveyOptions' => function ($q) {
+                    $q->withCount('surveyOptionReplies')
+                        ->withExists(['surveyOptionReplies' => function ($q) {
+                        $q->where('user_id', Auth::user()->id);
+                    }]);
+                },
+            ])
+            ->withCount(['replies'])
             ->where('user_id', Auth::user()->id)
             ->where('is_archived', false)
             ->orderByDesc('created_at')
@@ -36,42 +50,12 @@ class PostController extends Controller
 
     public function followedPost(Request $request)
     {
-        $validated = $request->validate(['page' => 'integer|min:1']);
-        $page = $validated['page'] - 1 ?? 0;
-
-        $posts = Post::query()->with('files', 'author', 'categories')
-            ->withCount('replies')
-            ->where('is_archived', false)
-            ->orderByDesc('created_at')
-            ->skip($page * 5)
-            ->limit(5)
-            ->get();
-
-        $lastPage = ceil(Post::query()->where('is_archived', false)->count() / 5);
-        return response()->json([
-            'posts' => PostResource::collection($posts),
-            'lastPage' => $lastPage
-        ]);
+        return $this->index($request);
     }
   
     public function newPost(Request $request)
     {
-        $validated = $request->validate(['page' => 'integer|min:1']);
-        $page = $validated['page'] - 1 ?? 0;
-
-        $posts = Post::query()->with('files', 'author', 'categories')
-            ->withCount('replies')
-            ->where('is_archived', false)
-            ->orderByDesc('created_at')
-            ->skip($page * 5)
-            ->limit(5)
-            ->get();
-
-        $lastPage = ceil(Post::query()->where('is_archived', false)->count() / 5);
-        return response()->json([
-            'posts' => PostResource::collection($posts),
-            'lastPage' => $lastPage
-        ]);
+        return $this->index($request);
     }
 
     public function store(Request $request)
@@ -81,6 +65,11 @@ class PostController extends Controller
             'content' => 'required|string',
             'categories' => 'required|array',
             'categories.*' => 'exists:'.(new Category())->getTable().',id',
+            'integrations' => 'required|array',
+            'integrations.*.type' => 'required|in:survey,annonce',
+            'integrations.*.data.question' => 'required|string',
+            'integrations.*.data.options' => 'required|array|min:2|max:10',
+            'integrations.*.data.options.*' => 'required|string',
         ]);
 
         DB::beginTransaction();
@@ -89,6 +78,22 @@ class PostController extends Controller
             $post->author()->associate(Auth::user()->id);
             $post->save();
             $post->categories()->sync($validated['categories']);
+
+            foreach ($validated['integrations'] as $integration) {
+                if ($integration['type'] === 'survey') {
+                    $survey = new Survey();
+                    $survey->question = $integration['data']['question'];
+                    $survey->post()->associate($post);
+                    $survey->save();
+
+                    foreach ($integration['data']['options'] as $option) {
+                        $surveyOption = new SurveyOption();
+                        $surveyOption->name = $option;
+                        $surveyOption->survey()->associate($survey);
+                        $surveyOption->save();
+                    }
+                }
+            }
             
             DB::commit();
             return response()->json(PostResource::make($post), 201);

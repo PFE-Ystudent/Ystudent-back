@@ -26,6 +26,11 @@ class Post extends Model
         return $this->hasMany(PostReply::class);
     }
 
+    public function surveys()
+    {
+        return $this->hasMany(Survey::class);
+    }
+
     public function files()
     {
         return $this->hasMany(PostFile::class);

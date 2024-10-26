@@ -21,6 +21,7 @@ class PostResource extends JsonResource
             'replyCount' => $this->whenNotNull($this->replies_count),
             'author' => AuthorResource::make($this->author),
             'categories' => CategoryResource::collection($this->categories),
+            'surveys' => SurveyResource::collection($this->surveys),
             'files' => $this->files,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
