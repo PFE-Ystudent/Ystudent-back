@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexRequest;
+use App\Http\Requests\Post\PostStoreRequest;
+use App\Http\Requests\Post\PostUpdateRequest;
 use App\Http\Resources\PostResource;
-use App\Models\Category;
+use App\Http\Traits\IndexTrait;
 use App\Models\Post;
 use App\Models\PostFile;
 use App\Models\Survey;
@@ -15,62 +18,51 @@ use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
-    public function index(Request $request)
+    use IndexTrait;
+
+    public function index(IndexRequest $request)
     {
-        $validated = $request->validate(['page' => 'integer|min:1']);
-        $page = $validated['page'] - 1 ?? 0;
+        $validated = $request->validated();
 
-        $posts = Post::query()
-            ->with([
-                'files',
-                'author',
-                'categories',
-                'surveys',
-                'surveys.surveyOptions' => function ($q) {
-                    $q->withCount('surveyOptionReplies')
-                        ->withExists(['surveyOptionReplies' => function ($q) {
-                        $q->where('user_id', Auth::user()->id);
-                    }]);
-                },
-            ])
-            ->withCount(['replies'])
+        $postsQuery = Post::query()
+            ->withDetails()
             ->where('user_id', Auth::user()->id)
-            ->where('is_archived', false)
-            ->orderByDesc('created_at')
-            ->skip($page * 5)
-            ->limit(5)
-            ->get();
+            ->orderByDesc('created_at');
 
-        $lastPage = ceil(Post::query()->where('is_archived', false)->where('user_id', Auth::user()->id)->count() / 5);
+        $posts = $this->indexQuery($postsQuery, $validated)->get();
+        $lastPage = ceil($postsQuery->count() / 5);
+
         return response()->json([
             'posts' => PostResource::collection($posts),
             'lastPage' => $lastPage
         ]);
     }
 
-    public function followedPost(Request $request)
+    public function followedPost(IndexRequest $request)
     {
         return $this->index($request);
     }
   
-    public function newPost(Request $request)
+    public function newPost(IndexRequest $request)
     {
-        return $this->index($request);
+        $validated = $request->validated();
+
+        $postsQuery = Post::query()
+            ->withDetails()
+            ->orderByDesc('created_at');
+
+        $posts = $this->indexQuery($postsQuery, $validated)->get();
+        $lastPage = ceil($postsQuery->count() / 5);
+
+        return response()->json([
+            'posts' => PostResource::collection($posts),
+            'lastPage' => $lastPage
+        ]);
     }
 
-    public function store(Request $request)
+    public function store(PostStoreRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'categories' => 'required|array',
-            'categories.*' => 'exists:'.(new Category())->getTable().',id',
-            'integrations' => 'required|array',
-            'integrations.*.type' => 'required|in:survey,annonce',
-            'integrations.*.data.question' => 'required|string',
-            'integrations.*.data.options' => 'required|array|min:2|max:10',
-            'integrations.*.data.options.*' => 'required|string',
-        ]);
+        $validated = $request->validated();
 
         DB::beginTransaction();
         try {
@@ -105,17 +97,16 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
+        $post->loadDetails();
+
         return response()->json([
             'post' => PostResource::make($post)
         ]);
     }
 
-    public function update(Request $request, Post $post)
+    public function update(PostUpdateRequest $request, Post $post)
     {
-        $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'content' => 'sometimes|required|string',
-        ]);
+        $validated = $request->validated();
 
         $post->update($validated);
 

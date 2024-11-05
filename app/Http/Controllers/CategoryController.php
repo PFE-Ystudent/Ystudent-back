@@ -8,7 +8,7 @@ class CategoryController extends Controller
 {
     public function fetchAll()
     {
-        $categories = Category::query()->where('is_archived', false)->get();
+        $categories = Category::query()->get();
         return response()->json(['categories' => $categories]);
     }
 
