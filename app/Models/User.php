@@ -53,4 +53,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(PostReply::class);
     }
+
+    public function getAvatarUrlAttribute()
+    {
+        return $this->avatar ? url('storage/' . $this->avatar) : null;
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserAccountResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class AuthController extends Controller
         if (Hash::check($request->password, $user->password)) {
             return response()->json([
                 'token' => $user->createToken(time())->plainTextToken,
-                'user' => $user,
+                'user' => UserAccountResource::make($user),
             ]);
         }
     }

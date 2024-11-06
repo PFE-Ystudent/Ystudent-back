@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PostReplyResource;
 use App\Models\Post;
 use App\Models\PostReply;
 use App\Models\PostReplyFile;
@@ -13,7 +14,9 @@ class PostReplyController extends Controller
     public function index(Post $post)
     {
         $postReplies = PostReply::with('files', 'author')->where('post_id', $post->id)->get();
-        return response()->json(['postReplies' => $postReplies ]);
+        return response()->json([
+            'postReplies' => PostReplyResource::collection($postReplies)
+        ]);
     }
 
     public function store(Request $request, Post $post)
