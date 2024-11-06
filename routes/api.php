@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostReplyController;
 use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('/')->middleware('auth:sanctum')->group(function () {
     Route::delete('logout', [AuthController::class, 'destroy']);
+
+    Route::prefix('users')->group(function () {
+        Route::get('{user}', [UserController::class, 'show']);
+    });
 
     Route::prefix('posts')->group(function () {
         Route::get('new', [PostController::class, 'newPost']);
