@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\IndexRequest;
+use App\Http\Requests\Post\PostIndexRequest;
 use App\Http\Requests\Post\PostStoreRequest;
 use App\Http\Requests\Post\PostUpdateRequest;
 use App\Http\Resources\PostResource;
@@ -20,16 +21,18 @@ class PostController extends Controller
 {
     use IndexTrait;
 
-    public function index(IndexRequest $request)
+    public function index(IndexRequest $indexRequest, PostIndexRequest $request)
     {
+        $pagination = $indexRequest->validated();
         $validated = $request->validated();
 
         $postsQuery = Post::query()
             ->withDetails()
             ->where('user_id', Auth::user()->id)
+            ->filtered($validated)
             ->orderByDesc('created_at');
 
-        $posts = $this->indexQuery($postsQuery, $validated)->get();
+        $posts = $this->indexQuery($postsQuery, $pagination)->get();
         $lastPage = ceil($postsQuery->count() / 5);
 
         return response()->json([
@@ -38,20 +41,22 @@ class PostController extends Controller
         ]);
     }
 
-    public function followedPost(IndexRequest $request)
+    public function followedPost(IndexRequest $indexRequest, PostIndexRequest $request)
     {
-        return $this->index($request);
+        return $this->index($indexRequest, $request);
     }
   
-    public function newPost(IndexRequest $request)
+    public function newPost(IndexRequest $indexRequest, PostIndexRequest $request)
     {
+        $pagination = $indexRequest->validated();
         $validated = $request->validated();
 
         $postsQuery = Post::query()
             ->withDetails()
+            ->filtered($validated)
             ->orderByDesc('created_at');
 
-        $posts = $this->indexQuery($postsQuery, $validated)->get();
+        $posts = $this->indexQuery($postsQuery, $pagination)->get();
         $lastPage = ceil($postsQuery->count() / 5);
 
         return response()->json([

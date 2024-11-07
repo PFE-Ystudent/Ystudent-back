@@ -70,6 +70,26 @@ class Post extends Model
         ->withCount(['replies']);
     }
 
+    public function scopeFiltered(Builder $query, $validated): void
+    {
+        if (isset($validated['search'])) {
+            $query->where(function ($q) use ($validated) {
+                $q->where('title', 'like', '%' . $validated['search'] . '%')
+                    ->orWhere('content', 'like', '%' . $validated['search'] . '%');
+            });
+        }
+        if (isset($validated['author'])) {
+            $query->whereHas('author', function ($q) use ($validated) {
+                $q->where('username', 'like', '%' . $validated['author'] . '%');
+            });
+        }
+        if (isset($validated['categories'])) {
+            $query->whereHas('categories', function ($q) use ($validated) {
+                $q->whereIn('category_id', $validated['categories']);
+            });
+        }
+    }
+
     public function loadDetails(): void
     {
         $this->load(self::getDetailsRelations())

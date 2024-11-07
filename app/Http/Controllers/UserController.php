@@ -42,5 +42,7 @@ class UserController extends Controller
             $user->avatar = $path;
             $user->save();
         }
+
+        return response()->json(UserAccountResource::make($user));
     }
 }
