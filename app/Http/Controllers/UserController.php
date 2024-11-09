@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexRequest;
 use App\Http\Requests\UserEditResource;
+use App\Http\Resources\PostResource;
 use App\Http\Resources\UserAccountResource;
 use App\Http\Resources\UserDetailsResource;
+use App\Http\Traits\IndexTrait;
+use App\Models\Post;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
+    use IndexTrait;
+
     public function me () {
         $user = Auth::user();
 
@@ -44,5 +49,23 @@ class UserController extends Controller
         }
 
         return response()->json(UserAccountResource::make($user));
+    }
+
+    public function getPosts(User $user, IndexRequest $indexRequest)
+    {
+        $pagination = $indexRequest->validated();
+
+        $postsQuery = Post::query()
+            ->withDetails()
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at');
+
+        $posts = $this->indexQuery($postsQuery, $pagination)->get();
+        $lastPage = ceil($postsQuery->count() / $pagination['per_page']);
+
+        return response()->json([
+            'posts' => PostResource::collection($posts),
+            'lastPage' => $lastPage
+        ]);
     }
 }

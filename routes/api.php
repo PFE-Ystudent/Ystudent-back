@@ -30,8 +30,12 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('me', [UserController::class, 'me']);
         Route::post('me', [UserController::class, 'edit']);
+        
+        Route::prefix('{user}')->group(function () {
+            Route::get('', [UserController::class, 'show']);
+            Route::get('posts', [UserController::class, 'getPosts']);
+        });
 
-        Route::get('{user}', [UserController::class, 'show']);
     });
 
     Route::prefix('posts')->group(function () {

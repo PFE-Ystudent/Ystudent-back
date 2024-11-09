@@ -33,7 +33,7 @@ class PostController extends Controller
             ->orderByDesc('created_at');
 
         $posts = $this->indexQuery($postsQuery, $pagination)->get();
-        $lastPage = ceil($postsQuery->count() / 5);
+        $lastPage = ceil($postsQuery->count() / $pagination['per_page']);
 
         return response()->json([
             'posts' => PostResource::collection($posts),
@@ -57,7 +57,7 @@ class PostController extends Controller
             ->orderByDesc('created_at');
 
         $posts = $this->indexQuery($postsQuery, $pagination)->get();
-        $lastPage = ceil($postsQuery->count() / 5);
+        $lastPage = ceil($postsQuery->count() / $pagination['per_page']);
 
         return response()->json([
             'posts' => PostResource::collection($posts),
