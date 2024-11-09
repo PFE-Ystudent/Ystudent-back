@@ -102,6 +102,8 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
+        $this->authorize('view', $post);
+
         $post->loadDetails();
 
         return response()->json([
@@ -111,6 +113,8 @@ class PostController extends Controller
 
     public function update(PostUpdateRequest $request, Post $post)
     {
+        $this->authorize('update', $post);
+
         $validated = $request->validated();
 
         $post->update($validated);
@@ -120,6 +124,8 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
+        $this->authorize('delete', $post);
+
         $post->is_archived = true;
         $post->save();
 
@@ -128,6 +134,8 @@ class PostController extends Controller
 
     public function addFiles(Request $request, Post $post)
     {
+        $this->authorize('update', $post);
+
         $validated = $request->validate([
             'images.*' => 'required|file|mimes:jpg,png,jpeg|max:2048',
         ]);
