@@ -119,7 +119,7 @@ class PostController extends Controller
 
         $post->update($validated);
 
-        return response()->json($post);
+        return response()->json(PostResource::make($post));
     }
 
     public function destroy(Post $post)

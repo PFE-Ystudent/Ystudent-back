@@ -48,6 +48,11 @@ class Post extends Model
         return $this->hasMany(PostFile::class);
     }
 
+    public function getIsEditedAttribute(): bool
+    {
+        return $this->updated_at->getTimestamp() !== $this->created_at->getTimestamp();
+    }
+
     public static function getDetailsRelations (): array
     {
         return [
