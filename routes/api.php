@@ -43,16 +43,18 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
         Route::get('me', [PostController::class, 'index']);
         Route::get('followed', [PostController::class, 'followedPost']);
         
-        Route::prefix('{post}')->group(function () { // TODO: Vérifier le nom du param
+        Route::prefix('{post}')->group(function () {
             Route::post('images', [PostController::class, 'addFiles']);
             
             Route::get('replies', [PostReplyController::class, 'index']);
             Route::post('replies', [PostReplyController::class, 'store']);
         });
 
-        Route::prefix('replies/{postReply}')->group(function () { // TODO: Vérifier le nom du param
+        Route::prefix('replies/{postReply}')->group(function () {
             Route::patch('', [PostReplyController::class, 'update']);
             Route::delete('', [PostReplyController::class, 'destroy']);
+
+            Route::post('up', [PostReplyController::class, 'upVote']);
             
             Route::post('images', [PostReplyController::class, 'addFiles']);
         });

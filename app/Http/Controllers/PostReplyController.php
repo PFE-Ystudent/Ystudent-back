@@ -6,6 +6,7 @@ use App\Http\Resources\PostReplyResource;
 use App\Models\Post;
 use App\Models\PostReply;
 use App\Models\PostReplyFile;
+use App\Models\PostReplyUp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +14,13 @@ class PostReplyController extends Controller
 {
     public function index(Post $post)
     {
-        $postReplies = PostReply::with('files', 'author')->where('post_id', $post->id)->get();
+        $this->authorize('view', $post);
+
+        $postReplies = PostReply::with('files', 'author', 'postReplyUps')
+            ->withCount('postReplyUps')
+            ->where('post_id', $post->id)
+            ->get()->sortByDesc('post_reply_ups_count');
+
         return response()->json([
             'postReplies' => PostReplyResource::collection($postReplies)
         ]);
@@ -32,25 +39,27 @@ class PostReplyController extends Controller
         $postReply->post()->associate($post);
 
         $postReply->save();
-
-        $postReply->load('author');
     
-        return response()->json($postReply, 201);
+        return response()->json(PostReplyResource::make($postReply), 201);
     }
 
     public function update(Request $request, PostReply $postReply)
     {
+        $this->authorize('update', $postReply);
+
         $validated = $request->validate([
             'content' => 'required|string',
         ]);
 
         $postReply->update($validated);
 
-        return response()->json($postReply);
+        return response()->json(PostReplyResource::make($postReply));
     }
 
     public function destroy(PostReply $postReply)
     {
+        $this->authorize('delete', $postReply);
+
         $postReply->is_archived = true;
         $postReply->save();
 
@@ -59,6 +68,8 @@ class PostReplyController extends Controller
 
     public function addFiles(Request $request, PostReply $postReply)
     {
+        $this->authorize('update', $postReply);
+
         $validated = $request->validate([
             'files.*' => 'file|mimes:jpg,png,jpeg|max:2048',
         ]);
@@ -77,5 +88,26 @@ class PostReplyController extends Controller
         }
 
         return response()->json($files, 201);
+    }
+
+    public function upVote(PostReply $postReply)
+    {
+        $this->authorize('view', $postReply);
+
+        $user = Auth::user();
+        if ($postReply->isUpVoted) {
+            $postReply->postReplyUps()->where('user_id', $user->id)->delete();
+        } else {
+            $postReplyUp = new PostReplyUp();
+            $postReplyUp->user()->associate($user->id);
+            $postReplyUp->postReply()->associate($postReply->id);
+
+            $postReplyUp->save();
+        }
+
+        return response()->json([
+            'upCount' => $postReply->postReplyUps()->count(),
+            'isUpVoted' => !$postReply->isUpVoted
+        ]);
     }
 }

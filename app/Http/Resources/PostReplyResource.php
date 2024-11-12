@@ -18,9 +18,11 @@ class PostReplyResource extends JsonResource
             'id' => $this->id,
             'content' => $this->content,
             'author' => AuthorResource::make($this->author),
+            'upCount' => $this->post_reply_ups_count ?? 0,
+            'isUpVoted' => $this->isUpVoted,
             'files' => $this->files,
             'createdAt' => $this->created_at,
-            'updatedAt' => $this->updated_at,
+            'isEdited' => $this->isEdited,
         ];
     }
 }
