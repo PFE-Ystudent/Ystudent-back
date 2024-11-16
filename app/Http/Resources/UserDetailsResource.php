@@ -21,6 +21,7 @@ class UserDetailsResource extends JsonResource
             'createdAt' => $this->created_at,
             'postsCount' => $this->posts_count,
             'postRepliesCount' => $this->post_replies_count,
+            'relationType' => $this->relationType,
             'avatar' => $this->avatarUrl
         ];
     }

@@ -58,4 +58,19 @@ class User extends Authenticatable
     {
         return $this->avatar ? url('storage/' . $this->avatar) : null;
     }
+
+    public function getRelationWith($user)
+    {
+        return UserRelation::query()
+            ->where(function ($q) use ($user) {
+                $q->where(function ($q) use ($user) {
+                    $q->where('user_id', $this->id)
+                        ->where('requester_id', $user->id);
+                })->orWhere(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->where('requester_id', $this->id);
+                });
+            })
+            ->first() ?? null;
+    }
 }

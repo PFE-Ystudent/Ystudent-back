@@ -7,9 +7,11 @@ use App\Http\Requests\UserEditResource;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserAccountResource;
 use App\Http\Resources\UserDetailsResource;
+use App\Http\Resources\UserSelectResource;
 use App\Http\Traits\IndexTrait;
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,6 +27,7 @@ class UserController extends Controller
 
     public function show (User $user) {
         $user->loadCount(['posts', 'postReplies']);
+        $user->setAttribute('relationType', $user->getRelationWith(Auth::user())->user_relation_type_id ?? null);
         
         return response()->json(UserDetailsResource::make($user));
     }
@@ -67,5 +70,20 @@ class UserController extends Controller
             'posts' => PostResource::collection($posts),
             'lastPage' => $lastPage
         ]);
+    }
+
+    public function fetchUsers(Request $request)
+    {
+        $validated = $request->validate([
+            'query' => ['required', 'string']
+        ]);
+        $query = $validated['query'];
+
+        $users = User::query()
+            ->where('username', 'like', '%' . $query . '%')
+            ->limit(100)
+            ->get();
+
+        return response()->json(UserSelectResource::collection($users));
     }
 }

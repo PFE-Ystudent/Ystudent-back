@@ -9,6 +9,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostReplyController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserRelationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -34,8 +35,17 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
         Route::prefix('{user}')->group(function () {
             Route::get('', [UserController::class, 'show']);
             Route::get('posts', [UserController::class, 'getPosts']);
-        });
 
+
+            Route::prefix('relations')->group(function () {
+                Route::post('request', [UserRelationController::class, 'sendRequest']);
+                Route::post('request/reply', [UserRelationController::class, 'replyRequest']);
+            });
+        });
+        
+        Route::prefix('relations')->group(function () {
+            Route::get('{userRelationType:name}', [UserRelationController::class, 'getRelations'])->where('name', 'contact|request|blocked');
+        });
     });
 
     Route::prefix('posts')->group(function () {
@@ -68,6 +78,10 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
 
     Route::prefix('categories')->group(function () {
         Route::get('', [CategoryController::class, 'fetchAll']);
+    });
+
+    Route::prefix('search')->group(function () {
+        Route::get('users', [UserController::class, 'fetchUsers']);
     });
 });
 
