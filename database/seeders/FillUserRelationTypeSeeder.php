@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\UserRelationType;
-use Exception;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -17,21 +15,24 @@ class FillUserRelationTypeSeeder extends Seeder
     {
         DB::beginTransaction();
         try {
-            $names = ['contact', 'report', 'request', 'blocked'];
+            $relationTypes = [
+                1 => 'contact',
+                2 => 'report',
+                3 => 'request',
+                4 => 'blocked',
+            ];
 
-            $id = 1;
-            foreach ($names as $name) {
-                $type = new UserRelationType();
-                $type->id = $id;
-                $type->name = $name;
-                $type->save();
-                $id++;
+            foreach ($relationTypes as $id => $name) {
+                UserRelationType::updateOrCreate(
+                    ['id' => $id],
+                    ['name' => $name]
+                );
             }
 
             DB::commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
-            echo $e;
+            echo $e->getMessage();
         }
     }
 }
