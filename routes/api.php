@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostReplyController;
 use App\Http\Controllers\SurveyController;
@@ -78,6 +80,24 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
 
     Route::prefix('categories')->group(function () {
         Route::get('', [CategoryController::class, 'fetchAll']);
+    });
+
+    Route::prefix('conversations')->group(function () {
+        Route::get('', [ConversationController::class, 'getConversations']);
+        Route::post('', [ConversationController::class, 'getOrCreate']);
+        Route::post('{conversation}/close', [ConversationController::class, 'hide']);
+        
+        Route::prefix('{conversation}')->group(function () {
+            Route::prefix('messages')->group(function () {
+                Route::get('', [MessageController::class, 'get']);
+                Route::post('', [MessageController::class, 'store']);
+            });
+        });
+    });
+
+    Route::prefix('messages')->group(function () {
+        Route::put('{message}', [MessageController::class, 'update']);
+        Route::delete('{message}', [MessageController::class, 'destroy']);
     });
 
     Route::prefix('search')->group(function () {
