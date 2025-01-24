@@ -26,6 +26,9 @@ class AuthController extends Controller
                 'user' => UserAccountResource::make($user),
             ]);
         }
+        return response()->json([
+            'errors' => [ 'email' => [__('validation.invalid_credentials')]],
+        ], 401);
     }
 
     public function store(Request $request)

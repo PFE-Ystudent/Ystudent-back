@@ -63,6 +63,7 @@ return array(
     ),
     "unique"           => "La valeur du champ :attribute est déjà utilisée.",
     "url"              => "Le format de l'URL de :attribute n'est pas valide.",
+    'invalid_credentials' => 'L\'email ou le mot de passe est invalide.',
 
     /*
     |--------------------------------------------------------------------------
