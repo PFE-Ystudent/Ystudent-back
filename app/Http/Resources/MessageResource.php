@@ -18,6 +18,7 @@ class MessageResource extends JsonResource
             'id' => $this->id,
             'content' => $this->content,
             'sender' => AuthorResource::make($this->sender),
+            'post' => PostResource::make($this->post),
             'createdAt' => $this->created_at,
             'isUpdated' => $this->isUpdated,
         ];

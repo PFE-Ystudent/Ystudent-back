@@ -8,10 +8,15 @@ use App\Http\Requests\Post\PostStoreRequest;
 use App\Http\Requests\Post\PostUpdateRequest;
 use App\Http\Resources\PostResource;
 use App\Http\Traits\IndexTrait;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Models\Post;
 use App\Models\PostFile;
 use App\Models\Survey;
 use App\Models\SurveyOption;
+use App\Models\User;
+use App\Models\UserRelation;
+use App\Models\UserRelationType;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -130,6 +135,65 @@ class PostController extends Controller
         $post->save();
 
         return response()->json(null, 204);
+    }
+
+    public function share(Request $request, Post $post)
+    {
+        $validated = $request->validate([
+            'users' => ['array', 'required'],
+            'users.*' => ['exists:' . (new User())->getTable() . ',id', 'required', 'min:1', 'max:5'],
+            'content' => ['string', 'nullable']
+        ]);
+
+        $users = User::query()
+            ->whereIn('users.id', $validated['users'])
+            ->whereExists(function ($query) {
+                $query->select('id')
+                    ->from((new UserRelation())->getTable() . ' as ur')
+                    ->where('ur.user_relation_type_id', UserRelationType::$contact)
+                    ->where(function ($q)  {
+                        $q->where(function ($q) {
+                            $q->whereColumn('ur.user_id', 'users.id')
+                                ->where('ur.requester_id', Auth::user()->id);
+                        })
+                        ->orWhere(function ($q) {
+                            $q->whereColumn('ur.requester_id', 'users.id')
+                                ->where('ur.user_id', Auth::user()->id);
+                        });
+                    });
+            })
+            ->leftJoin((new Conversation())->getTable() . ' as c', function ($join) {
+                $join->on(function ($q) {
+                    $q->on('c.requester_id', 'users.id')
+                        ->where('c.user_id', Auth::user()->id);
+                })->orOn(function ($q) {
+                    $q->on('c.user_id', 'users.id')
+                        ->where('c.requester_id', Auth::user()->id);
+                });
+            })
+            ->addSelect([ 'users.*', 'c.id as conversation_id' ])
+            ->get();
+
+        foreach ($users as $user) {
+            $conversationId = $user['conversation_id'];
+            if (!$conversationId) {
+                $conversation = new Conversation();
+                $conversation->requester()->associate(Auth::user()->id);
+                $conversation->user()->associate($user->id);
+                $conversation->save();
+
+                $conversationId = $conversation->id;
+            }
+            $message = new Message();
+            $message->content = $validated['content'];
+            $message->ip = $request->ip();
+            $message->sender()->associate(Auth::user()->id);
+            $message->conversation()->associate($conversationId);
+            $message->post()->associate($post->id);
+            $message->save();
+        }
+
+        return response()->noContent();
     }
 
     public function addFiles(Request $request, Post $post)

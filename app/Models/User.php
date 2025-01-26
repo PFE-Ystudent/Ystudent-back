@@ -54,6 +54,12 @@ class User extends Authenticatable
         return $this->hasMany(PostReply::class);
     }
 
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class, 'user_id')
+            ->orWhere((new Conversation())->getTable() . '.requester_id', $this->id);
+    }
+
     public function getAvatarUrlAttribute()
     {
         return $this->avatar ? url('storage/' . $this->avatar) : null;

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 class Message extends Model
 {
@@ -17,6 +18,11 @@ class Message extends Model
         });
     }
 
+    public function setContent($value)
+    {
+        $this->attributes['content'] = $value || null;
+    }
+
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
@@ -27,6 +33,10 @@ class Message extends Model
         return $this->belongsTo(Conversation::class);
     }
 
+    public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class);
+    }
 
     public function getIsUpdatedAttribute(): bool
     {

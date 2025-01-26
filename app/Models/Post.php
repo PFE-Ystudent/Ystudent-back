@@ -72,7 +72,7 @@ class Post extends Model
     public function scopeWithDetails(Builder $query): void
     {
         $query->with(self::getDetailsRelations())
-        ->withCount(['replies']);
+            ->withCount(['replies']);
     }
 
     public function scopeFiltered(Builder $query, $validated): void
@@ -98,6 +98,6 @@ class Post extends Model
     public function loadDetails(): void
     {
         $this->load(self::getDetailsRelations())
-        ->loadCount(['replies']);
+            ->loadCount(['replies']);
     }
 }

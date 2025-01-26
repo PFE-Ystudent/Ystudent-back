@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\UserDetailsResource;
+use App\Http\Resources\UserSelectResource;
 use App\Models\User;
 use App\Models\UserRelation;
 use App\Models\UserRelationType;
@@ -23,13 +24,13 @@ class UserRelationController extends Controller
                     ->where('user_relation_type_id', $userRelationType->id)
                     ->where(function ($q) use ($userRelationType) {
                         if ($userRelationType->id !== UserRelationType::$blocked && $userRelationType->id !== UserRelationType::$report) {
-                            $q->where(function ($q) { // je suis la cible
+                            $q->where(function ($q) { // Target
                                 $q->whereColumn('requester_id', 'users.id')
                                 ->where('user_id', Auth::user()->id);
                             });
                         }
                         if ($userRelationType->id !== UserRelationType::$request) {
-                            $q->orWhere(function ($q) { // j'ai fait la demande
+                            $q->orWhere(function ($q) { // Requester
                                 $q->where('requester_id', Auth::user()->id)
                                     ->whereColumn('user_id', 'users.id');
                             });
@@ -40,6 +41,34 @@ class UserRelationController extends Controller
             ->get();
 
         return response()->json(UserDetailsResource::collection($relations));
+    }
+
+    public function getRelationsForSelect (UserRelationType $userRelationType)
+    {
+        $relations = User::query()
+            ->whereExists(function ($q) use ($userRelationType) {
+                $q->select('id')
+                    ->from((new UserRelation())->getTable())
+                    ->where('user_relation_type_id', $userRelationType->id)
+                    ->where(function ($q) use ($userRelationType) {
+                        if ($userRelationType->id !== UserRelationType::$blocked && $userRelationType->id !== UserRelationType::$report) {
+                            $q->where(function ($q) { // Target
+                                $q->whereColumn('requester_id', 'users.id')
+                                ->where('user_id', Auth::user()->id);
+                            });
+                        }
+                        if ($userRelationType->id !== UserRelationType::$request) {
+                            $q->orWhere(function ($q) { // Requester
+                                $q->where('requester_id', Auth::user()->id)
+                                    ->whereColumn('user_id', 'users.id');
+                            });
+                        }
+                    });
+                
+            })
+            ->get();
+
+        return response()->json(UserSelectResource::collection($relations));
     }
 
     public function sendRequest (User $user)

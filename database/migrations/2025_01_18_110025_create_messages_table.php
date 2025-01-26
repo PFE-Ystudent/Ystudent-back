@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('conversation_id')->constrained();
             $table->foreignId('sender_id')->constrained('users');
-            $table->text('content');
+            $table->text('content')->nullable();
             $table->string('ip', 16);
             $table->boolean('is_archived')->default(false);
             $table->timestamps();

@@ -23,7 +23,12 @@ class MessageController extends Controller
 
         $messageLimit = 50;
         $query = Message::query()
-            ->with('sender')
+            ->with([
+                'sender',
+                'post' => function ($q) {
+                    $q->withDetails();
+                }
+            ])
             ->where('conversation_id', $conversation->id)
             ->orderByDesc('id');
         

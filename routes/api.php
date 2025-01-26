@@ -46,7 +46,10 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
         });
         
         Route::prefix('relations')->group(function () {
-            Route::get('{userRelationType:name}', [UserRelationController::class, 'getRelations'])->where('name', 'contact|request|blocked');
+            Route::prefix('{userRelationType:name}')->where(['name' => 'contact|request|blocked'])->group(function () {
+                Route::get('', [UserRelationController::class, 'getRelations']);
+                Route::get('select', [UserRelationController::class, 'getRelationsForSelect']);
+            });
         });
     });
 
@@ -60,6 +63,8 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
             
             Route::get('replies', [PostReplyController::class, 'index']);
             Route::post('replies', [PostReplyController::class, 'store']);
+
+            Route::post('share', [PostController::class, 'share']);
         });
 
         Route::prefix('replies/{postReply}')->group(function () {
