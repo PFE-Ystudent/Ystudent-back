@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('roles', function (Blueprint $table) {
-            $table->id();
+            $table->unsignedBigInteger('id', false)->primary(); 
             $table->string('name', 16);
             $table->string('color', 7);
             $table->timestamps();

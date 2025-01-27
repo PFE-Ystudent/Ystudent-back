@@ -20,8 +20,10 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $userNumber = 30;
-        // Exécute le seeder pour UserRelationType
+
+        // Fill default data
         $this->call(FillUserRelationTypeSeeder::class);
+        $this->call(FillRoleSeeder::class);
 
         // Crée 5 catégories
         $categories = Category::factory()->count(5)->create();
@@ -32,7 +34,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@ystudient.fr',
             'password' => bcrypt('admin'),
             'email_verified_at' => now(),
-            'about' => 'Utilisateur admin'
+            'about' => 'Utilisateur admin',
+            'role_id' => 1
         ]);
         $users = User::factory($userNumber - 1)->create();
         $users->prepend($admin);

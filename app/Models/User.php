@@ -44,6 +44,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    protected $attributes = [
+        'role_id' => 3
+    ];
+
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
