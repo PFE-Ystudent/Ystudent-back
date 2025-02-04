@@ -18,6 +18,7 @@ class UserRelationFactory extends Factory
             'user_id' => User::factory(),
             'user_relation_type_id' => $this->faker->randomElement([
                 UserRelationType::$contact,
+                UserRelationType::$contact,  // Luck 50 %
                 UserRelationType::$request,
                 UserRelationType::$blocked,
             ]),

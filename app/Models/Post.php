@@ -57,7 +57,7 @@ class Post extends Model
     {
         return [
             'files',
-            'author',
+            'author.role',
             'categories',
             'surveys',
             'surveys.surveyOptions' => function ($q) {

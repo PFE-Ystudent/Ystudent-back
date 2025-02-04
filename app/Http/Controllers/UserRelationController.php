@@ -17,6 +17,7 @@ class UserRelationController extends Controller
         $relations = User::query()
             ->select('*')
             ->selectRaw( $userRelationType->id . ' as relationType')
+            ->with('role')
             ->withCount(['posts', 'postReplies'])
             ->whereExists(function ($q) use ($userRelationType) {
                 $q->select('id')

@@ -18,6 +18,7 @@ class UserDetailsResource extends JsonResource
             'id' => $this->id,
             'username' => $this->username,
             'about' => $this->about,
+            'role' => RoleResource::make($this->role),
             'createdAt' => $this->created_at,
             'postsCount' => $this->posts_count,
             'postRepliesCount' => $this->post_replies_count,

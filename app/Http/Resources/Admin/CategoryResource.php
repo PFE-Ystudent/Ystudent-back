@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AuthorResource extends JsonResource
+class CategoryResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,9 +16,9 @@ class AuthorResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'username' => $this->username,
-            'role' => RoleResource::make($this->role),
-            'avatar' => $this->avatarUrl
+            'name' => $this->name,
+            'isArchived' => (bool)$this->is_archived,
+            'createdAt' => $this->created_at,
         ];
     }
 }

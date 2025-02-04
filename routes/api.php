@@ -84,7 +84,7 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('categories')->group(function () {
-        Route::get('', [CategoryController::class, 'fetchAll']);
+        Route::get('', [CategoryController::class, 'fetchForSelect']);
     });
 
     Route::prefix('conversations')->group(function () {
@@ -107,6 +107,18 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
 
     Route::prefix('search')->group(function () {
         Route::get('users', [UserController::class, 'fetchUsers']);
+    });
+
+    // Admin Route
+    Route::prefix('admin')->middleware('admin')->group(function () {
+        Route::prefix('categories')->group(function () {
+            Route::get('', [CategoryController::class, 'fetchAll']);
+            Route::post('', [CategoryController::class, 'store']);
+            
+            Route::put('{category}', [CategoryController::class, 'update']);
+            Route::delete('{category}', [CategoryController::class, 'destroy']);
+            Route::post('{id}/restore', [CategoryController::class, 'restore']);
+        });
     });
 });
 
