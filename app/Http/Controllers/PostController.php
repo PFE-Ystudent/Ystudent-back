@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageCreateEvent;
 use App\Http\Requests\IndexRequest;
 use App\Http\Requests\Post\PostIndexRequest;
 use App\Http\Requests\Post\PostStoreRequest;
@@ -191,6 +192,8 @@ class PostController extends Controller
             $message->conversation()->associate($conversationId);
             $message->post()->associate($post->id);
             $message->save();
+
+            broadcast(new MessageCreateEvent($message));
         }
 
         return response()->noContent();

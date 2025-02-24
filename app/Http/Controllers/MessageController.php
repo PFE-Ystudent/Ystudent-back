@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageCreateEvent;
+use App\Events\MessageDeleteEvent;
+use App\Events\MessageUpdateEvent;
 use App\Http\Requests\Messages\MessageRequest;
 use App\Http\Resources\MessageResource;
-use App\Library\Results;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\Request;
@@ -71,6 +73,8 @@ class MessageController extends Controller
         $message->conversation()->associate($conversation);
         $message->save();
 
+        broadcast(new MessageCreateEvent($message));
+
         return response()->json([
             'message' => MessageResource::make($message)
         ]);
@@ -85,6 +89,8 @@ class MessageController extends Controller
         $message->update($validated);
         $message->save();
 
+        broadcast(new MessageUpdateEvent( $message));
+
         return response()->json([
             'message' => MessageResource::make($message)
         ]);
@@ -96,6 +102,8 @@ class MessageController extends Controller
 
         $message->is_archived = true;
         $message->save();
+
+        broadcast(new MessageDeleteEvent( $message->id, $message->conversation_id));
 
         return response()->noContent();
     }
