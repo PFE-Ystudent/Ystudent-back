@@ -23,6 +23,7 @@ class PostResource extends JsonResource
             'author' => AuthorResource::make($this->author),
             'categories' => CategoryResource::collection($this->categories),
             'surveys' => SurveyResource::collection($this->surveys),
+            'isFavorited' => $this->is_favorited_by_user_exists,
             'files' => $this->files,
             'createdAt' => $this->created_at,
             'isEdited' => $this->isEdited,

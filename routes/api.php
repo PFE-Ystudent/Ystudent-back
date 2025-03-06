@@ -54,9 +54,10 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('posts')->group(function () {
-        Route::get('new', [PostController::class, 'newPost']);
         Route::get('me', [PostController::class, 'index']);
+        Route::get('new', [PostController::class, 'newPost']);
         Route::get('followed', [PostController::class, 'followedPost']);
+        Route::get('favorite', [PostController::class, 'favoritePost']);
         
         Route::prefix('{post}')->group(function () {
             Route::post('images', [PostController::class, 'addFiles']);
@@ -64,6 +65,7 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
             Route::get('replies', [PostReplyController::class, 'index']);
             Route::post('replies', [PostReplyController::class, 'store']);
 
+            Route::post('favorite', [PostController::class, 'favorite']);
             Route::post('share', [PostController::class, 'share']);
         });
 

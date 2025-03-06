@@ -43,6 +43,12 @@ class Post extends Model
         return $this->hasMany(Survey::class);
     }
 
+    public function isFavoritedByUser()
+    {
+        return $this->hasOne(FavoritePost::class, 'post_id')
+        ->where('user_id', Auth::id());
+    }
+
     public function files(): HasMany
     {
         return $this->hasMany(PostFile::class);
@@ -72,7 +78,15 @@ class Post extends Model
     public function scopeWithDetails(Builder $query): void
     {
         $query->with(self::getDetailsRelations())
+            ->withExists(['isFavoritedByUser'])
             ->withCount(['replies']);
+    }
+
+    public function loadDetails(): void
+    {
+        $this->load(self::getDetailsRelations())
+            ->loadExists(['isFavoritedByUser'])
+            ->loadCount(['replies']);
     }
 
     public function scopeFiltered(Builder $query, $validated): void
@@ -93,11 +107,5 @@ class Post extends Model
                 $q->whereIn('category_id', $validated['categories']);
             });
         }
-    }
-
-    public function loadDetails(): void
-    {
-        $this->load(self::getDetailsRelations())
-            ->loadCount(['replies']);
     }
 }

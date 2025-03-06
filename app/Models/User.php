@@ -64,6 +64,11 @@ class User extends Authenticatable
         return $this->hasMany(PostReply::class);
     }
 
+    public function favoritePosts()
+    {
+        return $this->hasManyThrough(Post::class, FavoritePost::class, 'user_id', 'id', 'id', 'post_id');
+    }
+
     public function conversations(): HasMany
     {
         return $this->hasMany(Conversation::class, 'user_id')

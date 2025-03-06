@@ -10,6 +10,7 @@ use App\Http\Requests\Post\PostUpdateRequest;
 use App\Http\Resources\PostResource;
 use App\Http\Traits\IndexTrait;
 use App\Models\Conversation;
+use App\Models\FavoritePost;
 use App\Models\Message;
 use App\Models\Post;
 use App\Models\PostFile;
@@ -50,6 +51,29 @@ class PostController extends Controller
     public function followedPost(IndexRequest $indexRequest, PostIndexRequest $request)
     {
         return $this->index($indexRequest, $request);
+    }
+
+    public function favoritePost(IndexRequest $indexRequest, PostIndexRequest $request)
+    {
+        $pagination = $indexRequest->validated();
+        $validated = $request->validated();
+
+        /**
+         * @var User
+         */
+        $user = Auth::user();
+        $postsQuery = $user->favoritePosts()
+            ->withDetails()
+            ->filtered($validated)
+            ->orderByDesc('created_at');
+
+        $posts = $this->indexQuery($postsQuery, $pagination)->get();
+        $lastPage = ceil($postsQuery->count() / $pagination['per_page']);
+
+        return response()->json([
+            'posts' => PostResource::collection($posts),
+            'lastPage' => $lastPage
+        ]);
     }
   
     public function newPost(IndexRequest $indexRequest, PostIndexRequest $request)
@@ -136,6 +160,25 @@ class PostController extends Controller
         $post->save();
 
         return response()->json(null, 204);
+    }
+
+    public function favorite(Post $post)
+    {
+        $this->authorize('view', $post);
+
+        if ($post->isFavoritedByUser()->exists()) {
+            FavoritePost::query()
+            ->where('user_id', Auth::id())
+            ->where('post_id', $post->id)
+            ->delete();
+        } else {
+            $favorite = new FavoritePost();
+            $favorite->user()->associate(Auth::id());
+            $favorite->post()->associate($post->id);
+            $favorite->save();
+        }
+
+        return response()->noContent();
     }
 
     public function share(Request $request, Post $post)
