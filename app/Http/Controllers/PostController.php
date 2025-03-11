@@ -168,9 +168,9 @@ class PostController extends Controller
 
         if ($post->isFavoritedByUser()->exists()) {
             FavoritePost::query()
-            ->where('user_id', Auth::id())
-            ->where('post_id', $post->id)
-            ->delete();
+                ->where('user_id', Auth::id())
+                ->where('post_id', $post->id)
+                ->delete();
         } else {
             $favorite = new FavoritePost();
             $favorite->user()->associate(Auth::id());
@@ -247,18 +247,19 @@ class PostController extends Controller
         $this->authorize('update', $post);
 
         $validated = $request->validate([
-            'images.*' => 'required|file|mimes:jpg,png,jpeg|max:2048',
+            'files.*' => 'required|file|mimes:jpg,png,jpeg|max:4096',
         ]);
 
         $files = [];
-        if($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
-                $path = $file->store('post_images', 'public');
-                $postFile = PostFile::create([
-                    'filename' => $file->getClientOriginalName(),
-                    'filepath' => $path,
-                    'post_id' => $post->id,
-                ]);
+        if($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $path = $file->store('post-files', 'public');
+                $postFile = new PostFile();
+                $postFile->filename = $file->getClientOriginalName();
+                $postFile->filepath = $path;
+                $postFile->post()->associate($post->id);
+                $postFile->save();
+
                 $files[] = $postFile;
             }
         }

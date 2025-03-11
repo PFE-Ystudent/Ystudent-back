@@ -19,13 +19,13 @@ class UserController extends Controller
 {
     use IndexTrait;
 
-    public function me () {
+    public function me() {
         $user = Auth::user();
 
         return response()->json(UserAccountResource::make($user));
     }
 
-    public function show (User $user) {
+    public function show(User $user) {
         $user->loadCount(['posts', 'postReplies']);
         $user->setAttribute('relationType', $user->getRelationWith(Auth::user())->user_relation_type_id ?? null);
         

@@ -60,7 +60,7 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
         Route::get('favorite', [PostController::class, 'favoritePost']);
         
         Route::prefix('{post}')->group(function () {
-            Route::post('images', [PostController::class, 'addFiles']);
+            Route::post('files', [PostController::class, 'addFiles']);
             
             Route::get('replies', [PostReplyController::class, 'index']);
             Route::post('replies', [PostReplyController::class, 'store']);

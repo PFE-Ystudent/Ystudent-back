@@ -12,6 +12,11 @@ class PostFile extends Model
 
     protected $fillable = ['filename', 'filepath'];
 
+    public function getUrlAttribute(): string
+    {
+        return url('storage/' . $this->filepath);
+    }
+
     public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);

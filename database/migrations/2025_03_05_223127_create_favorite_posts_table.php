@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('favorite_posts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('post_id')->constrained();
-            $table->foreignId('user_id')->constrained(); // TODO: rexec la migration
+            $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });
     }
