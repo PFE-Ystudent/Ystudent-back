@@ -1,29 +1,28 @@
-name: Lint Laravel Project
+name: Deploy Backend
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  lint:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout Back Repository
+        uses: actions/checkout@v3
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        tools: composer
-
-    - name: Install dependencies
-      run: composer install
-
-    - name: Run PHP_CodeSniffer
-      run: composer run-script lint
+      - name: Deploy Back via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ~/ystudent/ystudent-back
+            git pull origin main
+            docker compose -f ~/ystudent/docker-compose.yml build back reverb
+            docker compose -f ~/ystudent/docker-compose.yml up -d back reverb
+            docker exec back_php php artisan migrate --force
