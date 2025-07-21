@@ -30,6 +30,7 @@ class SurveyController extends Controller
         }
 
         $survey = Survey::query()
+            ->where('id', $surveyOption->survey_id)
             ->with([
                 'surveyOptions' => function ($q) {
                     $q->withCount('surveyOptionReplies')
@@ -49,14 +50,15 @@ class SurveyController extends Controller
             ->where('survey_option_id', $surveyOption->id)->delete();
 
         $survey = Survey::query()
-        ->with([
-            'surveyOptions' => function ($q) {
-                $q->withCount('surveyOptionReplies')
-                    ->withExists(['surveyOptionReplies' => function ($q) {
-                    $q->where('user_id', Auth::user()->id);
-                }]);
-            }
-        ])->first();
+            ->where('id', $surveyOption->survey_id)
+            ->with([
+                'surveyOptions' => function ($q) {
+                    $q->withCount('surveyOptionReplies')
+                        ->withExists(['surveyOptionReplies' => function ($q) {
+                        $q->where('user_id', Auth::user()->id);
+                    }]);
+                }
+            ])->first();
 
         return response()->json(['survey' => SurveyResource::make($survey)]);
     }

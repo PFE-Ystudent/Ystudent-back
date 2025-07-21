@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -22,9 +23,10 @@ class PostResource extends JsonResource
             'author' => AuthorResource::make($this->author),
             'categories' => CategoryResource::collection($this->categories),
             'surveys' => SurveyResource::collection($this->surveys),
-            'files' => $this->files,
+            'isFavorited' => $this->is_favorited_by_user_exists,
+            'files' => PostFileResource::collection($this->files),
             'createdAt' => $this->created_at,
-            'updatedAt' => $this->updated_at,
+            'isEdited' => $this->isEdited,
         ];
     }
 }

@@ -19,8 +19,9 @@ class UserAccountResource extends JsonResource
             'username' => $this->username,
             'email' => $this->email,
             'about' => $this->about,
-            'createdAt' => $this->created_at,
-            'avatar' => $this->avatarUrl
+            'avatar' => $this->avatarUrl,
+            'role' => RoleResource::make($this->role),
+            'createdAt' => $this->created_at
         ];
     }
 }
