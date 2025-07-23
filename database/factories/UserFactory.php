@@ -16,7 +16,7 @@ class UserFactory extends Factory
         $username = $faker->unique()->userName;
         return [
             'username' => $username,
-            'email' => $username . '@ystudient.fr',
+            'email' => $username . '@ystudent.fr',
             'password' => bcrypt('admin'),
             'about' => $faker->paragraph,
             'email_verified_at' => now(),
