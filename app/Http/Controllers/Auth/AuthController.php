@@ -35,7 +35,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'username' => 'required|unique:users,username',
-            'email' => 'required|email|unique:users,email', //TODO verifier le mail
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|confirmed|min:8',
         ]);
 
@@ -47,7 +47,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken(time())->plainTextToken,
-            'user' => $user,
+            'user' => UserAccountResource::make($user),
         ]);
     }
 

@@ -23,6 +23,9 @@ jobs:
           script: |
             cd ~/ystudent/ystudent-back
             git pull origin main
-            docker compose -f ~/ystudent/docker-compose.yml build back reverb
-            docker compose -f ~/ystudent/docker-compose.yml up -d back reverb
+            NEW_VERSION=$(jq -r '.version' composer.json)
+            git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
+            git push origin "v$NEW_VERSION"
+            docker compose -f ~/ystudent/docker-compose.yml build back reverb back_nginx
+            docker compose -f ~/ystudent/docker-compose.yml up -d back reverb back_nginx
             docker exec back_php php artisan migrate --force

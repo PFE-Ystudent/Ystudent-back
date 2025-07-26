@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
 
         $admin = User::create([
             'username' => 'Admin',
-            'email' => 'admin@ystudient.fr',
+            'email' => 'admin@ystudent.fr',
             'password' => bcrypt('admin'),
             'email_verified_at' => now(),
             'about' => 'Utilisateur admin',

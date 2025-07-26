@@ -1,18 +1,16 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\LogoutController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostReplyController;
+use App\Http\Controllers\ReportingCategoryController;
+use App\Http\Controllers\ReportingController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRelationController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -88,6 +86,9 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
     Route::prefix('categories')->group(function () {
         Route::get('', [CategoryController::class, 'fetchForSelect']);
     });
+    Route::prefix('reporting-categories')->group(function () {
+        Route::get('{type}', [ReportingCategoryController::class, 'fetchForSelect'])->where('type', 'bug|post');
+    });
 
     Route::prefix('conversations')->group(function () {
         Route::get('', [ConversationController::class, 'getConversations']);
@@ -111,6 +112,10 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
         Route::get('users', [UserController::class, 'fetchUsers']);
     });
 
+    Route::prefix('bug-report')->group(function () {
+        Route::post('', [ReportingController::class, 'bugReport']);
+    });
+
     // Admin Route
     Route::prefix('admin')->middleware('admin')->group(function () {
         Route::prefix('categories')->group(function () {
@@ -120,6 +125,15 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
             Route::put('{category}', [CategoryController::class, 'update']);
             Route::delete('{category}', [CategoryController::class, 'destroy']);
             Route::post('{id}/restore', [CategoryController::class, 'restore']);
+        });
+        
+        Route::prefix('reporting-categories')->group(function () {
+            Route::get('', [ReportingCategoryController::class, 'fetchAll']);
+            Route::post('', [ReportingCategoryController::class, 'store']);
+            
+            Route::put('{category}', [ReportingCategoryController::class, 'update']);
+            Route::delete('{category}', [ReportingCategoryController::class, 'destroy']);
+            Route::post('{id}/restore', [ReportingCategoryController::class, 'restore']);
         });
     });
 });
