@@ -13,6 +13,17 @@ jobs:
       - name: Checkout Back Repository
         uses: actions/checkout@v3
 
+      - name: Extract version
+        run: |
+          VERSION=$(jq -r '.version' composer.json)
+          echo "Extracted version: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create a Git tag
+        run: |
+          git tag -a "v${{ env.VERSION }}" -m "Release version ${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
+
       - name: Deploy Back via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
