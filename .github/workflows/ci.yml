@@ -75,6 +75,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
 
     steps:
       - name: Checkout Back Repository
