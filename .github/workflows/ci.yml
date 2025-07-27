@@ -4,8 +4,75 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_USER: root
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, bcmath, pdo, mysql
+          coverage: none
+
+      - name: Set up Laravel
+        env:
+            DB_CONNECTION: mysql
+            DB_DATABASE: testing
+            DB_USERNAME: root
+            DB_PASSWORD: ''
+            DB_HOST: 127.0.0.1
+        run: |
+          composer install --prefer-dist --no-progress --no-suggest
+          cp .env.example .env
+          php artisan key:generate
+          php artisan migrate --force
+
+      - name: Run tests
+        env:
+          DB_CONNECTION: mysql
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+          DB_HOST: 127.0.0.1
+        run: php artisan test
+
+      - name: Check package version
+        run: |
+          CURRENT_VERSION=$(jq -r '.version' composer.json)
+          git fetch origin
+          PREV_VERSION=$(git show origin/${{ github.event.pull_request.base.ref }}:composer.json | jq -r '.version')
+          if [ "$CURRENT_VERSION" = "$PREV_VERSION" ]; then
+            echo "ERROR: package.json version has NOT updated"
+            exit 1
+          fi
+
   deploy:
     runs-on: ubuntu-latest
 
