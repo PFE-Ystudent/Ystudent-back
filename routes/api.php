@@ -112,7 +112,7 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
         Route::get('users', [UserController::class, 'fetchUsers']);
     });
 
-    Route::prefix('bug-report')->group(function () {
+    Route::prefix('bug-reports')->group(function () {
         Route::post('', [ReportingController::class, 'bugReport']);
     });
 
@@ -134,6 +134,16 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
             Route::put('{category}', [ReportingCategoryController::class, 'update']);
             Route::delete('{category}', [ReportingCategoryController::class, 'destroy']);
             Route::post('{id}/restore', [ReportingCategoryController::class, 'restore']);
+        });
+
+        Route::prefix('bug-reports')->group(function () {
+            Route::get('stats', [ReportingController::class, 'getStats']);
+            
+            Route::get('{status}', [ReportingController::class, 'fetchAll'])->where(['status' => 'opened|processed|done']);
+            Route::prefix('{bugReport}')->group(function () {
+                Route::patch('status', [ReportingController::class, 'updateStatus']);
+                Route::patch('', [ReportingController::class, 'update']);
+            });
         });
     });
 });
