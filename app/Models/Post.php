@@ -46,7 +46,7 @@ class Post extends Model
     public function isFavoritedByUser()
     {
         return $this->hasOne(FavoritePost::class, 'post_id')
-        ->where('user_id', Auth::id());
+            ->where('user_id', Auth::id());
     }
 
     public function files(): HasMany
@@ -59,7 +59,7 @@ class Post extends Model
         return $this->updated_at->getTimestamp() !== $this->created_at->getTimestamp();
     }
 
-    public static function getDetailsRelations (): array
+    public static function getDetailsRelations(): array
     {
         return [
             'files',
@@ -69,8 +69,8 @@ class Post extends Model
             'surveys.surveyOptions' => function ($q) {
                 $q->withCount('surveyOptionReplies')
                     ->withExists(['surveyOptionReplies' => function ($q) {
-                    $q->where('user_id', Auth::user()->id);
-                }]);
+                        $q->where('user_id', Auth::user()->id);
+                    }]);
             },
         ];
     }
@@ -97,11 +97,21 @@ class Post extends Model
                     ->orWhere('content', 'like', '%' . $validated['search'] . '%');
             });
         }
-        if (isset($validated['author'])) {
-            $query->whereHas('author', function ($q) use ($validated) {
+
+        $query->whereHas('author', function ($q) use ($validated) {
+            if (isset($validated['author'])) {
                 $q->where('username', 'like', '%' . $validated['author'] . '%');
+            }
+            $q->whereNotExists(function ($subQuery) {
+                $table = (new UserRelation())->getTable();
+                $subQuery->select('id')
+                    ->from($table)
+                    ->whereColumn($table . '.user_id', (new User())->getTable() . '.id')
+                    ->where($table . '.requester_id', Auth::id())
+                    ->where($table . '.user_relation_type_id', UserRelationType::$blocked);
             });
-        }
+        });
+
         if (isset($validated['categories'])) {
             $query->whereHas('categories', function ($q) use ($validated) {
                 $q->whereIn('category_id', $validated['categories']);

@@ -39,7 +39,11 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
 
             Route::prefix('relations')->group(function () {
                 Route::post('request', [UserRelationController::class, 'sendRequest']);
+                Route::post('blocked', [UserRelationController::class, 'blocked']);
+                Route::post('unblocked', [UserRelationController::class, 'unblocked']);
                 Route::post('request/reply', [UserRelationController::class, 'replyRequest']);
+
+                Route::delete('contact', [UserRelationController::class, 'removeContact']);
             });
         });
         

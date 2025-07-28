@@ -16,16 +16,19 @@ class FillUserRelationTypeSeeder extends Seeder
         DB::beginTransaction();
         try {
             $relationTypes = [
-                1 => 'contact',
-                2 => 'report',
-                3 => 'request',
-                4 => 'blocked',
+                ['id' => 1, 'name' => 'contact', 'is_bidirictional' => true],
+                ['id' => 2, 'name' => 'report', 'is_bidirictional' => false],
+                ['id' => 3, 'name' => 'request', 'is_bidirictional' => true],
+                ['id' => 4, 'name' => 'blocked', 'is_bidirictional' => false],
             ];
 
-            foreach ($relationTypes as $id => $name) {
+            foreach ($relationTypes as $relationType) {
                 UserRelationType::updateOrCreate(
-                    ['id' => $id],
-                    ['name' => $name]
+                    ['id' => $relationType['id']],
+                    [
+                        'name' => $relationType['name'],
+                        'is_bidirictional' => $relationType['is_bidirictional']
+                    ]
                 );
             }
 

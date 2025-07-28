@@ -83,14 +83,22 @@ class User extends Authenticatable
     public function getRelationWith($user)
     {
         return UserRelation::query()
+            ->select((new UserRelation())->getTable() . '.*')
+            ->join((new UserRelationType())->getTable() . ' as type', 'user_relation_type_id', '=', 'type.id')
             ->where(function ($q) use ($user) {
                 $q->where(function ($q) use ($user) {
-                    $q->where('user_id', $this->id)
-                        ->where('requester_id', $user->id);
-                })->orWhere(function ($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                        ->where('requester_id', $this->id);
-                });
+                    $q->where(function ($q) use ($user) {
+                        $q->where('user_id', $this->id)
+                            ->where('requester_id', $user->id);
+                    })->orWhere(function ($q) use ($user) {
+                        $q->where('user_id', $user->id)
+                            ->where('requester_id', $this->id);
+                    });
+                })->where('is_bidirictional', true);
+            })->orWhere(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->where('requester_id', $this->id)
+                    ->where('is_bidirictional', false);
             })
             ->first() ?? null;
     }

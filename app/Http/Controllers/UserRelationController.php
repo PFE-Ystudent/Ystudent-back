@@ -74,7 +74,12 @@ class UserRelationController extends Controller
 
     public function sendRequest (User $user)
     {
-        if (!$user->getRelationWith(Auth::user())) {
+        /**
+         * @var User
+         */
+        $authUser = Auth::user();
+        $userRelation = $authUser->getRelationWith($user);
+        if (!$userRelation) {
             $userRelation = new UserRelation();
             $userRelation->requester()->associate(Auth::user()->id);
             $userRelation->userRelationType()->associate(UserRelationType::$request);
@@ -87,13 +92,52 @@ class UserRelationController extends Controller
         return response()->noContent(409);
     }
 
+    public function blocked (User $user)
+    {
+        /**
+         * @var User
+         */
+        $authUser = Auth::user();
+        $userRelation = $authUser->getRelationWith($user);
+        if (!$userRelation) {
+            $userRelation = new UserRelation();
+            $userRelation->requester()->associate(Auth::user()->id);
+            $userRelation->userRelationType()->associate(UserRelationType::$blocked);
+            $userRelation->user()->associate($user->id);
+    
+            $userRelation->save();
+
+            return response()->noContent(201);
+        }
+        return response()->noContent(409);
+    }
+    
+    public function unblocked (User $user)
+    {
+        /**
+         * @var User
+         */
+        $authUser = Auth::user();
+        $userRelation = $authUser->getRelationWith($user);
+        if ($userRelation && $userRelation->user_relation_type_id === UserRelationType::$blocked) {
+            $userRelation->delete();
+
+            return response()->noContent(201);
+        }
+        return response()->noContent(409);
+    }
+
     public function replyRequest (User $user, Request $request)
     {
         $validated = $request->validate([
             'is_accepted' => ['required', 'boolean']
         ]);
 
-        $userRelation = $user->getRelationWith(Auth::user());
+        /**
+         * @var User
+         */
+        $authUser = Auth::user();
+        $userRelation = $authUser->getRelationWith($user);
         if ($userRelation->user_relation_type_id === UserRelationType::$request && $userRelation->user_id === Auth::user()->id) {
             if ($validated['is_accepted']) {
                 $userRelation->userRelationType()->associate(UserRelationType::$contact);
@@ -101,6 +145,20 @@ class UserRelationController extends Controller
             } else {
                 $userRelation->delete();
             }
+            return response()->noContent(201);
+        }
+        return response()->noContent(409);
+    }
+
+    public function removeContact (User $user) {
+        /**
+         * @var User
+         */
+        $authUser = Auth::user();
+        $userRelation = $authUser->getRelationWith($user);
+        if ($userRelation && $userRelation->user_relation_type_id === UserRelationType::$contact) {
+            $userRelation->delete();
+
             return response()->noContent(201);
         }
         return response()->noContent(409);
