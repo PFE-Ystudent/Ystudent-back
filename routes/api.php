@@ -31,6 +31,8 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('me', [UserController::class, 'me']);
         Route::post('me', [UserController::class, 'edit']);
+
+        Route::get('relations/waiting-request-number', [UserRelationController::class, 'waitingRequestNumber']);
         
         Route::prefix('{user}')->group(function () {
             Route::get('', [UserController::class, 'show']);
@@ -39,7 +41,11 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
 
             Route::prefix('relations')->group(function () {
                 Route::post('request', [UserRelationController::class, 'sendRequest']);
+                Route::post('blocked', [UserRelationController::class, 'blocked']);
+                Route::post('unblocked', [UserRelationController::class, 'unblocked']);
                 Route::post('request/reply', [UserRelationController::class, 'replyRequest']);
+
+                Route::delete('contact', [UserRelationController::class, 'removeContact']);
             });
         });
         
@@ -112,7 +118,7 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
         Route::get('users', [UserController::class, 'fetchUsers']);
     });
 
-    Route::prefix('bug-report')->group(function () {
+    Route::prefix('bug-reports')->group(function () {
         Route::post('', [ReportingController::class, 'bugReport']);
     });
 
@@ -134,6 +140,16 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
             Route::put('{category}', [ReportingCategoryController::class, 'update']);
             Route::delete('{category}', [ReportingCategoryController::class, 'destroy']);
             Route::post('{id}/restore', [ReportingCategoryController::class, 'restore']);
+        });
+
+        Route::prefix('bug-reports')->group(function () {
+            Route::get('stats', [ReportingController::class, 'getStats']);
+            
+            Route::get('{status}', [ReportingController::class, 'fetchAll'])->where(['status' => 'opened|processed|done']);
+            Route::prefix('{bugReport}')->group(function () {
+                Route::patch('status', [ReportingController::class, 'updateStatus']);
+                Route::patch('', [ReportingController::class, 'update']);
+            });
         });
     });
 });

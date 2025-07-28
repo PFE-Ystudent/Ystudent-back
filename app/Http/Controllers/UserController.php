@@ -27,7 +27,12 @@ class UserController extends Controller
 
     public function show(User $user) {
         $user->loadCount(['posts', 'postReplies']);
-        $user->setAttribute('relationType', $user->getRelationWith(Auth::user())->user_relation_type_id ?? null);
+        /**
+         * @var User
+         */
+        $authUser = Auth::user();
+        $userRelation = $authUser->getRelationWith($user);
+        $user->setAttribute('relationType', $userRelation->user_relation_type_id ?? null);
         
         return response()->json(UserDetailsResource::make($user));
     }

@@ -10,7 +10,7 @@ class BugReport extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['description', 'is_processed', 'is_done', 'is_archived', 'filepath'];
+    protected $fillable = ['description', 'important', 'note', 'is_processed', 'is_done', 'is_archived', 'filepath'];
 
     public function user(): BelongsTo
     {
