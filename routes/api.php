@@ -31,6 +31,8 @@ Route::prefix('/')->middleware('auth:sanctum')->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('me', [UserController::class, 'me']);
         Route::post('me', [UserController::class, 'edit']);
+
+        Route::get('relations/waiting-request-number', [UserRelationController::class, 'waitingRequestNumber']);
         
         Route::prefix('{user}')->group(function () {
             Route::get('', [UserController::class, 'show']);

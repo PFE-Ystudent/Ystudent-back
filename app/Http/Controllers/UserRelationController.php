@@ -163,4 +163,14 @@ class UserRelationController extends Controller
         }
         return response()->noContent(409);
     }
+
+    public function waitingRequestNumber ()
+    {
+        $count = UserRelation::query()
+            ->where('user_relation_type_id', UserRelationType::$request)
+            ->where('user_id', Auth::id())
+            ->count();
+
+        return response()->json([ 'waitingRequestNumber' => $count ]);
+    }
 }
