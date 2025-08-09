@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserAccountResource;
 use App\Models\User;
+use Dotenv\Exception\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -26,6 +28,14 @@ class AuthController extends Controller
                 'user' => UserAccountResource::make($user),
             ]);
         }
+
+        Log::channel('auth')->warning('Auth fail', [
+            'email' => $request->email,
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+
         return response()->json([
             'errors' => [ 'email' => [__('validation.invalid_credentials')]],
         ], 401);
@@ -33,6 +43,15 @@ class AuthController extends Controller
 
     public function store(Request $request)
     {
+        if (User::where('email', $request->email)->exists()) {
+            Log::channel('auth')->warning('Register fail', [
+                'email' => $request->email,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+        }
+
         $request->validate([
             'username' => 'required|unique:users,username',
             'email' => 'required|email|unique:users,email',
