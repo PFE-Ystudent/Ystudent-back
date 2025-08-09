@@ -12,4 +12,8 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::view('/{any}', 'app')->where('any', '.*');
+Route::fallback(function () {
+    return response()->json([
+        'message' => 'Not found'
+    ], 404);
+});
